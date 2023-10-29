@@ -5,22 +5,27 @@
 
 package Controller;
 
-import DAO.AttendDBContext;
-import Model.Attended;
+import DAO.SessionDBContext;
+import DTO.DayDTO;
+import DTO.SessionDTO;
+import Helper.DateHelper;
+import Model.Account;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  *
  * @author kienb
  */
-public class AttendanceController extends HttpServlet {
+public class WeeklyTableController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -31,7 +36,29 @@ public class AttendanceController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        
+        HttpSession session = request.getSession();
+        Account acc = (Account) session.getAttribute("account");
+        String yearString = request.getParameter("year");
+        int year = Year.now().getValue();
+        if(yearString != null){
+            year = Integer.parseInt(yearString);
+        }
+        List<DayDTO> list = DateHelper.workingDayOfYear(year);
+        String weekString = request.getParameter("DateRange");
+        int week = DateHelper.getWeek(list, LocalDate.now());
+        if(weekString != null){
+            week = Integer.parseInt(weekString);
+        }
+        int idx = DateHelper.getIndexByWeek(list, week);
+        List<SessionDTO> dTOs = list.get(idx).getList();
+        SessionDBContext sdc = new SessionDBContext();
+        TreeMap<String, List<SessionDTO>> map = sdc.getAllSessionWithCondition(dTOs.get(0).getDate(), dTOs.get(dTOs.size() - 1).getDate(),acc.getId());
+        request.setAttribute("map", map);
+        request.setAttribute("selectedWeek", week);
+        request.setAttribute("selectedYear", year);
+        request.setAttribute("listDayDTO", list);
+        request.setAttribute("dayWeeks", dTOs);
+        request.getRequestDispatcher("WeeklyTimeTable.jsp").forward(request, response);
     } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -58,17 +85,7 @@ public class AttendanceController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        List<Attended> list = (List<Attended>) session.getAttribute("listAtt");
-        session.removeAttribute("listAtt");
-        for(int idx = 0;idx < list.size();idx++){
-            String status = request.getParameter(String.valueOf(list.get(idx).getStudent().getId()));
-            boolean check = status.equals("1");
-            list.get(idx).setStatus(check);
-        }
-        AttendDBContext adb = new AttendDBContext();
-        adb.updateAttend(list);
-        response.sendRedirect("weeklyTable");
+        processRequest(request, response);
     }
 
     /** 

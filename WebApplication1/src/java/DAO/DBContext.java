@@ -18,7 +18,7 @@ public class DBContext {
     public DBContext()
     {
         try{
-            String user="sa";
+            String user="DUCXUAN";
             String pass="123";
             String url="jdbc:sqlserver://localhost:1433;databaseName=FPT_Attended";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");

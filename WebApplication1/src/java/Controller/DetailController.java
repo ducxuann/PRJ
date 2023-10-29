@@ -2,11 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-
 package Controller;
 
-import DAO.AttendDBContext;
+import DAO.AccountDBContext;
+import DAO.SessionDBContext;
+import Model.Account;
 import Model.Attended;
+import Model.Session;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,29 +16,55 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
  *
  * @author kienb
  */
-public class AttendanceController extends HttpServlet {
-   
-    /** 
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+public class DetailController extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        
-    } 
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try ( PrintWriter out = response.getWriter()) {
+            String sid = request.getParameter("sid");
+            String slid = request.getParameter("slid");
+            String date = request.getParameter("date");
+            SessionDBContext sdb = new SessionDBContext();
+            HttpSession session = request.getSession();
+            Account acc = (Account) session.getAttribute("account");
+            LocalDate localDate = LocalDate.parse(date);
+            Timestamp timestamp = Timestamp.valueOf(localDate.atStartOfDay());           
+            if (!acc.isIsTeacher()) {
+                Session s = sdb.getSession(Integer.parseInt(sid), Integer.parseInt(slid), timestamp);
+                request.setAttribute("detail", s);
+                request.getRequestDispatcher("CourseDetail.jsp").forward(request, response);
+            } else {
+                AccountDBContext adb = new AccountDBContext();
+                List<Attended> list = adb.getAllAccountByClass(Integer.parseInt(sid), Integer.parseInt(slid), timestamp);
+                request.setAttribute("listAtt", list);
+                session.setAttribute("listAtt", list);
+                request.getRequestDispatcher("Attendance.jsp").forward(request, response);
+            }
+        }
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
+    /**
      * Handles the HTTP <code>GET</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -44,12 +72,13 @@ public class AttendanceController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
-    } 
+    }
 
-    /** 
+    /**
      * Handles the HTTP <code>POST</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -57,22 +86,13 @@ public class AttendanceController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        List<Attended> list = (List<Attended>) session.getAttribute("listAtt");
-        session.removeAttribute("listAtt");
-        for(int idx = 0;idx < list.size();idx++){
-            String status = request.getParameter(String.valueOf(list.get(idx).getStudent().getId()));
-            boolean check = status.equals("1");
-            list.get(idx).setStatus(check);
-        }
-        AttendDBContext adb = new AttendDBContext();
-        adb.updateAttend(list);
-        response.sendRedirect("weeklyTable");
+            throws ServletException, IOException {
+        processRequest(request, response);
     }
 
-    /** 
+    /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override
