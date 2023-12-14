@@ -1,0 +1,19 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Oct 25, 2022, 11:26:03 PM
+    Author     : win
+*/
+
+a.active{
+    background-color: #ECF3FD;
+    color: blue;
+    font-weight: 600;
+}
+
+a{
+    color: black;
+    text-decoration: none;
+}

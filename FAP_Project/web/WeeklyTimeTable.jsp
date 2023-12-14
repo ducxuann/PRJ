@@ -139,7 +139,7 @@
                                                                                         <div id="ctl00_mainContent_divContent"></div>
                                                                                         <table>
                                                                                             <thead>
-                                                                                                <tr>
+                                                                                                
                                                                                                     <th rowspan="2">
                                                                                                         <span class="auto-style1"><strong>Year</strong></span>
                                                                                                         <select name="year"
@@ -166,7 +166,7 @@
                                                                                                     <th align="center">Fri</th>
                                                                                                     <th align="center">Sat</th>
                                                                                                     <th align="center">Sun</th>
-                                                                                                </tr>
+                                                                                                
                                                                                                 <tr>
                                                                                                     <c:forEach items="${requestScope.dayWeeks}" var="i">
                                                                                                         <th align="center">${i.showDate()}</th>
